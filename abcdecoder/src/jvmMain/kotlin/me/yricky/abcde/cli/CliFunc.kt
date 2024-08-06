@@ -4,6 +4,10 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import me.yricky.abcde.util.SelectedAbcFile
 import me.yricky.abcde.util.SelectedIndexFile
+import me.yricky.oh.abcd.cfm.AbcClass
+import me.yricky.oh.abcd.isa.asmArgs
+import me.yricky.oh.abcd.isa.asmName
+import me.yricky.oh.abcd.isa.util.ExternModuleParser
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
@@ -76,6 +80,51 @@ val dumpIndex = Pair(
                 }
             }
             ps.print(json.encodeToString(map))
+        }
+    }
+)
+
+val explore = Pair(
+    "--explore",
+    CliFunc(
+        "Explore New Function Dev",
+        "/path/to/xxx.abc"
+    ){ args->
+        println("Hello my friend, welcome to explore mode.")
+        val iterator = args.iterator()
+        var inputFile:SelectedAbcFile? = null;
+        val operandParser = listOf(ExternModuleParser)
+
+        while(iterator.hasNext()) {
+            val arg = iterator.next()
+            inputFile = SelectedAbcFile(File(arg))
+        }
+
+        println("${inputFile?.file?.path}")
+        println("Input File check : ${inputFile?.valid()}")
+
+        if (inputFile?.valid() == true) {
+            inputFile?.abcBuf?.classes?.forEach {(k, v) ->
+                // println("[${v::class.simpleName}] ${v.name}")
+                if (v.name.endsWith("EntryAbility")) {
+                    val cls = v as AbcClass;
+                    cls.methods.forEach{ method->
+                        // println("${method.name}")
+                        if (method.name.equals("onWindowStageCreate")) {
+                            method.codeItem?.asm?.list?.map {
+                                val sb = StringBuilder()
+                                sb.append(it.asmName)
+                                it.asmArgs(operandParser).forEach {(index, argString) ->
+                                    sb.append("  ")
+                                    sb.append(argString)
+                                }
+
+                                println("${it.codeOffset}  ${sb.toString()}")
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 )

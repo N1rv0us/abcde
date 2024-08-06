@@ -12,7 +12,8 @@ class CliEntry(
         const val CLI_ENTRY_ARG = "--cli"
         val cliFuncMap = mapOf(
             dumpClass,
-            dumpIndex
+            dumpIndex,
+            explore
         )
     }
 
